@@ -44,7 +44,8 @@ fun FoodListScreen(
     foods: List<Food>,
     onDelete: (Int) -> Unit,
     onAddClick: () -> Unit,
-    onProfileClick: () -> Unit = {}
+    onProfileClick: () -> Unit = {},
+    isLoggedIn: Boolean
 ) {
     Scaffold(
         topBar = {
@@ -73,14 +74,15 @@ fun FoodListScreen(
         },
 
         floatingActionButton = {
-
-            FloatingActionButton(
-                onClick = onAddClick
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Tambah"
-                )
+            if (isLoggedIn) {
+                FloatingActionButton(
+                    onClick = onAddClick
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Tambah"
+                    )
+                }
             }
         }
 
@@ -110,8 +112,16 @@ fun FoodListScreen(
 
                         if (!food.image_url.isNullOrEmpty()) {
 
+                            val imageUrl = if (
+                                food.image_url.startsWith("http")
+                            ) {
+                                food.image_url
+                            } else {
+                                "http://10.0.2.2:8000/storage/${food.image_url}"
+                            }
+
                             AsyncImage(
-                                model = food.image_url,
+                                model = imageUrl,
                                 contentDescription = food.food_name,
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -147,14 +157,17 @@ fun FoodListScreen(
                                 horizontalArrangement = Arrangement.End
                             ) {
 
-                                AssistChip(
-                                    onClick = {
-                                        showDialog = true
-                                    },
-                                    label = {
-                                        Text("Hapus")
-                                    }
-                                )
+                                if (food.is_public == 0) {
+
+                                    AssistChip(
+                                        onClick = {
+                                            showDialog = true
+                                        },
+                                        label = {
+                                            Text("Hapus")
+                                        }
+                                    )
+                                }
 
                                 if (showDialog) {
 

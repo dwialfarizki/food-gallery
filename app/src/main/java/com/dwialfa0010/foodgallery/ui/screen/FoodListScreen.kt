@@ -37,12 +37,15 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.*
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
+import androidx.compose.foundation.layout.width
 
+private const val BASE_URL = "https://api-food-gallery-production.up.railway.app/"
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FoodListScreen(
     foods: List<Food>,
     onDelete: (Int) -> Unit,
+    onEdit: (Food) -> Unit,
     onAddClick: () -> Unit,
     onProfileClick: () -> Unit = {},
     isLoggedIn: Boolean
@@ -111,13 +114,10 @@ fun FoodListScreen(
                     Column {
 
                         if (!food.image_url.isNullOrEmpty()) {
-
-                            val imageUrl = if (
-                                food.image_url.startsWith("http")
-                            ) {
+                            val imageUrl = if (food.image_url.startsWith("http")) {
                                 food.image_url
                             } else {
-                                "http://10.0.2.2:8000/storage/${food.image_url}"
+                                "$BASE_URL/storage/${food.image_url.removePrefix("/")}"
                             }
 
                             AsyncImage(
@@ -126,7 +126,11 @@ fun FoodListScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(200.dp),
-                                contentScale = ContentScale.Crop
+                                contentScale = ContentScale.Crop,
+                                // Tambahkan ini untuk menangkap error Coil jika terjadi
+                                onError = {
+                                    android.util.Log.e("CEK_URL", "Coil Error: ${it.result.throwable.message}")
+                                }
                             )
                         }
 
@@ -157,7 +161,20 @@ fun FoodListScreen(
                                 horizontalArrangement = Arrangement.End
                             ) {
 
-                                if (food.is_public == 0) {
+                                if (!food.isPublicValue) {
+
+                                    AssistChip(
+                                        onClick = {
+                                            onEdit(food)
+                                        },
+                                        label = {
+                                            Text("Edit")
+                                        }
+                                    )
+
+                                    Spacer(
+                                        modifier = Modifier.width(8.dp)
+                                    )
 
                                     AssistChip(
                                         onClick = {

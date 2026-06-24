@@ -41,6 +41,11 @@ class MainActivity : ComponentActivity() {
                 var showAddScreen by remember {
                     mutableStateOf(false)
                 }
+
+                var selectedFood by remember {
+                    mutableStateOf<com.dwialfa0010.foodgallery.model.Food?>(null)
+                }
+
                 var showProfileDialog by remember {
                     mutableStateOf(false)
                 }
@@ -49,22 +54,43 @@ class MainActivity : ComponentActivity() {
                 }
 
                 if (showAddScreen) {
+
                     AddFoodScreen(
+                        food = selectedFood,
+
                         onAddClick = { foodName, description, imageUri ->
-                            vm.addFood(
-                                context = this@MainActivity,
-                                email = user.email,
-                                foodName = foodName,
-                                description = description,
-                                imageUri = imageUri
-                            )
+
+                            if (selectedFood == null) {
+
+                                vm.addFood(
+                                    context = this@MainActivity,
+                                    email = user.email,
+                                    foodName = foodName,
+                                    description = description,
+                                    imageUri = imageUri
+                                )
+
+                            } else {
+
+                                vm.updateFood(
+                                    context = this@MainActivity,
+                                    email = user.email,
+                                    id = selectedFood!!.id,
+                                    foodName = foodName,
+                                    description = description,
+                                    imageUri = imageUri
+                                )
+                            }
+
+                            selectedFood = null
                             showAddScreen = false
                         },
+
                         onBackClick = {
+                            selectedFood = null
                             showAddScreen = false
                         }
                     )
-
                 } else {
                     val status by vm.status.collectAsState()
                     when (status) {
@@ -81,6 +107,11 @@ class MainActivity : ComponentActivity() {
                         ApiStatus.SUCCESS -> {
                             FoodListScreen(
                                 foods = vm.data.value,
+
+                                onEdit = { food ->
+                                    selectedFood = food
+                                    showAddScreen = true
+                                },
 
                                 onDelete = { id ->
                                     vm.deleteFood(

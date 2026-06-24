@@ -27,6 +27,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.dwialfa0010.foodgallery.model.Food
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+
 
 private const val BASE_URL = "https://api-food-gallery-production.up.railway.app/"
 
@@ -58,7 +61,8 @@ fun AddFoodScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = if (food == null) "Tambah Makanan" else "Edit Makanan"
+                        text = if (food == null) "Tambah Makanan" else "Edit Makanan",
+                        color = Color.White
                     )
                 },
                 navigationIcon = {
@@ -101,7 +105,11 @@ fun AddFoodScreen(
 
             Button(
                 onClick = { launcher.launch("image/*") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF6B8E6B)
+                ),
+                shape = MaterialTheme.shapes.medium
             ) {
                 Text("Pilih Gambar")
             }
@@ -136,9 +144,16 @@ fun AddFoodScreen(
                 onClick = {
                     onAddClick(foodName, description, imageUri)
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF6B8E6B)
+                ),
+                shape = MaterialTheme.shapes.medium
             ) {
-                Text(if (food == null) "Tambah" else "Update")
+                Text(
+                    text = if (food == null) "Tambah" else "Update",
+                    color = Color.White
+                )
             }
         }
     }

@@ -38,6 +38,8 @@ import androidx.compose.runtime.*
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 
 private const val BASE_URL = "https://api-food-gallery-production.up.railway.app/"
 @OptIn(ExperimentalMaterial3Api::class)
@@ -79,7 +81,9 @@ fun FoodListScreen(
         floatingActionButton = {
             if (isLoggedIn) {
                 FloatingActionButton(
-                    onClick = onAddClick
+                    onClick = onAddClick,
+                    containerColor = Color(0xFF6B8E6B),
+                    contentColor = Color.White
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
@@ -163,27 +167,23 @@ fun FoodListScreen(
 
                                 if (!food.isPublicValue) {
 
-                                    AssistChip(
-                                        onClick = {
-                                            onEdit(food)
-                                        },
-                                        label = {
-                                            Text("Edit")
-                                        }
-                                    )
+                                    Button(
+                                        onClick = { onEdit(food) },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color(0xFF6B8E6B)
+                                        )
+                                    ) {
+                                        Text("Edit")
+                                    }
 
                                     Spacer(
                                         modifier = Modifier.width(8.dp)
                                     )
 
-                                    AssistChip(
-                                        onClick = {
-                                            showDialog = true
-                                        },
-                                        label = {
-                                            Text("Hapus")
-                                        }
-                                    )
+                                    Button(
+                                        onClick = { showDialog = true },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)) // Warna merah untuk hapus
+                                    ) { Text("Hapus") }
                                 }
 
                                 if (showDialog) {

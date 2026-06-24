@@ -29,7 +29,12 @@ import coil.compose.AsyncImage
 import com.dwialfa0010.foodgallery.model.Food
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.FileProvider
+import java.io.File
+import java.util.Objects
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 private const val BASE_URL = "https://api-food-gallery-production.up.railway.app/"
 
@@ -40,20 +45,23 @@ fun AddFoodScreen(
     onAddClick: (String, String, Uri?) -> Unit,
     onBackClick: () -> Unit
 ) {
-
-    var foodName by remember {
-        mutableStateOf(food?.food_name ?: "")
-    }
-
-    var description by remember {
-        mutableStateOf(food?.description ?: "")
-    }
+    val context = LocalContext.current
+    var foodName by remember { mutableStateOf(food?.food_name ?: "") }
+    var description by remember { mutableStateOf(food?.description ?: "") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
 
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        imageUri = uri
+    fun getTempUri(): Uri {
+        val tempFile = File.createTempFile("food_photo", ".jpg", context.externalCacheDir)
+        return FileProvider.getUriForFile(Objects.requireNonNull(context), "${context.packageName}.provider", tempFile)
+    }
+
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success) imageUri = tempPhotoUri
+    }
+
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) imageUri = uri
     }
 
     Scaffold(
@@ -85,8 +93,8 @@ fun AddFoodScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
         ) {
 
             OutlinedTextField(
@@ -104,14 +112,29 @@ fun AddFoodScreen(
             )
 
             Button(
-                onClick = { launcher.launch("image/*") },
+                onClick = {
+                    val uri = getTempUri()
+                    tempPhotoUri = uri
+                    cameraLauncher.launch(uri)
+                },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF6B8E6B)
                 ),
                 shape = MaterialTheme.shapes.medium
             ) {
-                Text("Pilih Gambar")
+                Text("Ambil Foto Kamera")
+            }
+
+            Button(
+                onClick = { galleryLauncher.launch("image/*") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF6B8E6B)
+                ),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Text("Pilih dari Galeri")
             }
 
             if (imageUri != null) {
@@ -124,10 +147,10 @@ fun AddFoodScreen(
                     contentScale = ContentScale.Crop
                 )
             } else if (!food?.image_url.isNullOrEmpty()) {
-                val imageUrl = if (food.image_url.startsWith("http")) {
+                val imageUrl = if (food?.image_url?.startsWith("http") == true) {
                     food.image_url
                 } else {
-                    "$BASE_URL/storage/${food.image_url.removePrefix("/")}"
+                    "$BASE_URL/storage/${food?.image_url?.removePrefix("/")}"
                 }
 
                 AsyncImage(
